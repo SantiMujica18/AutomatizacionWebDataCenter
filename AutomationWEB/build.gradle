@@ -1,0 +1,132 @@
+version '1.0-SNAPSHOT'
+
+tasks.withType(JavaCompile){ options.encoding = 'UTF-8'}
+group 'org.example'
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        url 'https://repo.clojars.org'
+        name 'Clojars'
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+        // Agrega el repositorio de JavaFX
+        maven {
+            url 'https://repo.maven.apache.org/maven2' // Repositorio Maven Central
+        }
+        maven{
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "net.serenity-bdd:serenity-gradle-plugin:2.0.81"
+    }
+}
+
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'net.serenity-bdd.aggregator'
+apply plugin: 'application'
+
+
+application {
+    // Configuración de la clase principal
+    mainClassName = 'com.co.datacenter.runners.Main' // Reemplaza con tu clase Main
+
+}
+
+
+defaultTasks 'clean', 'test', 'aggregate'
+
+
+
+dependencies {
+
+    //implementation 'net.serenity-bdd:serenity-core:2.0.81'
+    implementation 'net.serenity-bdd:serenity-core:2.0.81'
+    implementation 'net.serenity-bdd:serenity-junit:2.0.81'
+    implementation 'net.serenity-bdd:serenity-cucumber:1.9.45'
+    implementation 'net.serenity-bdd:serenity-screenplay:2.0.81'
+    //implementation 'org.hamcrest:hamcrest-all:1.3'
+    implementation 'junit:junit:4.12'
+    implementation 'org.assertj:assertj-core:3.12.2'
+    implementation 'org.slf4j:slf4j-simple:1.7.26'
+    implementation group: 'net.serenity-bdd', name: 'serenity-screenplay-webdriver', version: '2.0.52'
+    implementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: '1.9.39'
+    implementation group: 'org.jvnet.com4j', name: 'com4j', version: '2.1'
+    implementation group: 'com.codoid.products', name: 'fillo', version: '1.21'
+    implementation group: 'io.appium', name: 'java-client', version: '4.1.2'
+    implementation 'com.thoughtworks.xstream:xstream:1.4.19'
+
+}
+
+task ConfimChanceMillonarioRunner(type: Test) {
+    description = 'Ejecuta las pruebas automatizadas de Chance Millonario'
+    group = 'Automatización'
+
+    // Configuración de las pruebas
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    // Configuración de las pruebas específicas
+    include 'com/co/datacenter/runners/Chance_millonario_runner/ConfimChanceMillonarioRunner.class'
+}
+
+
+
+
+task createJar(type: Jar) {
+        manifest {
+            attributes 'Main-Class': 'com.co.datacenter.runners.Main' // Reemplaza con tu clase Main
+        }
+
+        // Configuración para incluir archivos en el JAR
+        from sourceSets.main.output
+        from sourceSets.test.output  // Incluye las clases de la carpeta test en el JAR
+
+        // Excluir duplicados
+        duplicatesStrategy = 'exclude'
+    }
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(JavaCompile){ options.encoding = 'UTF-8' }
+group 'org.example'
+
+
+task cleanTestReports(type: Delete) {
+    delete 'target/site/serenity'
+}
+
+test.dependsOn(cleanTestReports)
+
+task openReport(type: Exec) {
+    dependsOn 'aggregate'
+
+    commandLine 'cmd', '/c', 'start', 'target/site/serenity/index.html'
+}
+
+test.finalizedBy openReport
+
+
+task repeatedTests {
+    doLast {
+        def vecesAEjecutar = 5
+
+        for (int i = 0; i < vecesAEjecutar; i++) {
+            println "Ejecución número: ${i + 1}"
+            exec {
+                commandLine 'gradle', 'clean', 'test'
+            }
+        }
+    }
+}
+
